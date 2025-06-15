@@ -1,6 +1,7 @@
 package com.auca_hr.AUCA_HR_System.entities;
 
 import com.auca_hr.AUCA_HR_System.enums.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -131,9 +132,11 @@ public class User implements UserDetails {
 
     // Relationships for work experience and education
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference // This manages the forward part of reference
     private List<WorkExperience> workExperience = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference // This manages the forward part of reference
     private List<Education> education = new ArrayList<>();
 
     // Additional fields for UserDetails implementation
@@ -447,6 +450,28 @@ public class User implements UserDetails {
 
     public void setEducation(List<Education> education) {
         this.education = education;
+    }
+
+    // Add this helper method to properly set up the bidirectional relationship
+    public void addEducation(Education educationItem) {
+        education.add(educationItem);
+        educationItem.setUser(this);
+    }
+
+    public void removeEducation(Education educationItem) {
+        education.remove(educationItem);
+        educationItem.setUser(null);
+    }
+
+    // Similarly for work experience
+    public void addWorkExperience(WorkExperience workExp) {
+        workExperience.add(workExp);
+        workExp.setUser(this);
+    }
+
+    public void removeWorkExperience(WorkExperience workExp) {
+        workExperience.remove(workExp);
+        workExp.setUser(null);
     }
 
     //    public List<WorkExperience> getWorkExperience() {

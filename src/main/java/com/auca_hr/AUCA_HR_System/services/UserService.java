@@ -86,6 +86,36 @@ public class UserService {
         String password = registrationDTO.getPassword() != null ? registrationDTO.getPassword() : generateTemporaryPassword();
         user.setPassword(passwordEncoder.encode(password)); // IMPORTANT
 
+        // IMPORTANT: Use the helper method, don't set education list directly
+        if (registrationDTO.getEducation() != null) {
+            for (EducationDTO eduDto : registrationDTO.getEducation()) {
+                Education education = new Education();
+                education.setInstitution(eduDto.getInstitution());
+                education.setDepartment(eduDto.getDepartment());
+                education.setProgram(eduDto.getProgram());
+                education.setPeriod(eduDto.getPeriod());
+
+                // THIS IS THE KEY - use addEducation(), not user.getEducation().add()
+                user.addEducation(education);
+            }
+        }
+        // IMPORTANT: Use the helper method, don't set education list directly
+        if (registrationDTO.getWorkExperienceDTO() != null) {
+            for (WorkExperienceDTO eduDto : registrationDTO.getWorkExperienceDTO()) {
+                WorkExperience education = new WorkExperience();
+                education.setCompany(eduDto.getCompany());
+                education.setPosition(eduDto.getPosition());
+                education.setExperience(eduDto.getExperience());
+                education.setYear(eduDto.getYear());
+                education.setLogo(education.getLogo());
+
+                // THIS IS THE KEY - use addEducation(), not user.getEducation().add()
+                user.addWorkExperience(education);
+            }
+        }
+
+
+
         User savedUser = userRepository.save(user);
         sendWelcomeEmail(savedUser.getEmail(), savedUser.getFullNames(), password);
 
@@ -387,41 +417,7 @@ public class UserService {
         user.setAccountNumber(dto.getAccountNumber());
         user.setRssbNumber(dto.getRssbNumber());
         user.setRole(dto.getRole());
-
-        // Handle work experience
-        if (dto.getWorkExperienceDTO() != null && !dto.getWorkExperienceDTO().isEmpty()) {
-            List<WorkExperience> workExperienceList = dto.getWorkExperienceDTO().stream()
-                    .map(this::convertToWorkExperience)
-                    .collect(Collectors.toList());
-            user.setWorkExperience(workExperienceList);
-        }
-
-        // Handle education
-        if (dto.getEducation() != null && !dto.getEducation().isEmpty()) {
-            List<Education> educationList = dto.getEducation().stream()
-                    .map(this::convertToEducation)
-                    .collect(Collectors.toList());
-            user.setEducation(educationList);
-        }
-
         return user;
-    }
-    private WorkExperience convertToWorkExperience(WorkExperienceDTO dto) {
-        return WorkExperience.builder()
-                .company(dto.getCompany())
-                .position(dto.getPosition())
-                .year(dto.getYear())
-                .experience(dto.getExperience())
-                .build();
-    }
-
-    private Education convertToEducation(EducationDTO dto) {
-        return Education.builder()
-                .institution(dto.getInstitution())
-                .department(dto.getDepartment())
-                .program(dto.getProgram())
-                .period(dto.getPeriod())
-                .build();
     }
 
     private User buildUpdatedUser(User existingUser, UserUpdateDTO dto) {
