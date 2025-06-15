@@ -1,0 +1,9 @@
+package com.auca_hr.AUCA_HR_System.enums;
+
+public enum NotificationType {
+    LEAVE_REQUEST_SUBMITTED,
+    LEAVE_REQUEST_APPROVED,
+    LEAVE_REQUEST_REJECTED,
+    LEAVE_REQUEST_CANCELLED,
+    SYSTEM_NOTIFICATION
+}

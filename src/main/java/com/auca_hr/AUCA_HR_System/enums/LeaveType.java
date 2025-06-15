@@ -1,0 +1,14 @@
+package com.auca_hr.AUCA_HR_System.enums;
+
+public enum LeaveType {
+    ANNUAL,
+    SICK_LEAVE,
+    MATERNITY_LEAVE,
+    PATERNITY_LEAVE,
+    PERSONAL_LEAVE,
+    EMERGENCY_LEAVE,
+    BEREAVEMENT_LEAVE,
+    STUDY_LEAVE,
+    SABBATICAL_LEAVE,
+    UNPAID_LEAVE
+}
