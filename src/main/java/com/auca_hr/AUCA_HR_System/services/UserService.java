@@ -6,9 +6,11 @@ import com.auca_hr.AUCA_HR_System.entities.User;
 import com.auca_hr.AUCA_HR_System.entities.WorkExperience;
 import com.auca_hr.AUCA_HR_System.enums.UserRole;
 import com.auca_hr.AUCA_HR_System.exceptions.DuplicateResourceException;
+import com.auca_hr.AUCA_HR_System.exceptions.FileValidationException;
 import com.auca_hr.AUCA_HR_System.exceptions.InvalidFormatException;
 import com.auca_hr.AUCA_HR_System.exceptions.ResourceNotFoundException;
 import com.auca_hr.AUCA_HR_System.repositories.UserRepository;
+import com.auca_hr.AUCA_HR_System.utils.FileStorageService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import jakarta.validation.Validator;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
@@ -38,16 +42,18 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     private Validator validator;
     private EmailService emailService;
+    private final FileStorageService fileStorageService;
 
     @Autowired
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        Validator validator,
-                       EmailService emailService) {
+                       EmailService emailService, FileStorageService fileStorageService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.validator = validator;
         this.emailService = emailService;
+        this.fileStorageService = fileStorageService;
     }
 
     // Validation patterns
@@ -75,6 +81,17 @@ public class UserService {
     private static final int MIN_AGE = 18;
     private static final int MAX_AGE = 65;
     private static final int MIN_PASSWORD_LENGTH = 8;
+
+    public List<UserRegistrationDTO> searchUsers(String query, Long currentUserId) {
+        List<User> matchedUsers = userRepository.findByFullNamesContainingIgnoreCase(query);
+
+        return matchedUsers.stream()
+                .filter(user -> !user.getId().equals(currentUserId))
+                .map(this::buildUserDTO) // Use a lambda instead of method reference
+                .collect(Collectors.toList());
+
+    }
+
 
     /**
      * Create a new user with comprehensive validation
@@ -249,6 +266,7 @@ public class UserService {
         validateSalary(dto.getSalary());
         validateAccountNumber(dto.getAccountNumber());
         validateRssbNumber(dto.getRssbNumber());
+        validatePhoto(dto.getPhoto());
 
         // Check uniqueness
         if (emailExists(dto.getEmail())) {
@@ -329,6 +347,24 @@ public class UserService {
             throw new InvalidFormatException("Invalid phone number format");
         }
     }
+    /**
+     * Validate photo upload using FileStorageService validation logic
+     * @param photo The multipart file containing the user's photo
+     * @throws ValidationException if photo validation fails
+     */
+    private void validatePhoto(MultipartFile photo) {
+        // Skip validation if photo is not provided (optional upload)
+        if (photo == null || photo.isEmpty()) {
+            return; // Photo is optional, so we don't throw an error
+        }
+
+        try {
+            // Use FileStorageService to validate the image
+            fileStorageService.uploadImage(photo);
+        } catch (FileValidationException e) {
+            throw new ValidationException("Photo validation failed: " + e.getMessage());
+        }
+    }
 
     private void validateNationalId(String nationalId) {
         if (!StringUtils.hasText(nationalId)) {
@@ -396,6 +432,38 @@ public class UserService {
     }
 
     // Builder methods for creating users from DTOs
+    private UserRegistrationDTO buildUserDTO(User user) {
+        UserRegistrationDTO dto = new UserRegistrationDTO();
+
+        dto.setFullNames(user.getFullNames());
+        dto.setEmail(user.getEmail());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setDateOfBirth(user.getDateOfBirth());
+        dto.setGender(user.getGender());
+        dto.setNationalId(user.getNationalId());
+        dto.setNationality(user.getNationality());
+        dto.setMaritalStatus(user.getMaritalStatus());
+        dto.setReligion(user.getReligion());
+        dto.setContractType(user.getContractType());
+        dto.setAcademicRank(user.getAcademicRank());
+        dto.setWorkingPosition(user.getWorkingPosition());
+        dto.setSalary(user.getSalary());
+        dto.setBankAccount(user.getBankAccount());
+        dto.setAccountNumber(user.getAccountNumber());
+        dto.setRssbNumber(user.getRssbNumber());
+        dto.setRole(user.getRole());
+        dto.setTotalAllowances(user.getTotalAllowances());
+        dto.setTprLevel(user.getTprLevel());
+//
+//        String photoUrl = user.getPhoto();
+//        if (photoUrl == null || photoUrl.trim().isEmpty()) {
+//            photoUrl = fileStorageService.getDefaultImageUrl();
+//        }
+//        dto.setPhoto(photoUrl);
+
+        return dto;
+    }
+
     private User buildUserFromRegistrationDTO(UserRegistrationDTO dto) {
         User user = new User();
 
@@ -417,6 +485,14 @@ public class UserService {
         user.setAccountNumber(dto.getAccountNumber());
         user.setRssbNumber(dto.getRssbNumber());
         user.setRole(dto.getRole());
+        user.setTotalAllowances(dto.getTotalAllowances());
+        user.setTprLevel(dto.getTprLevel());
+
+        String photoUrl = user.getPhoto();
+        if (photoUrl == null || photoUrl.trim().isEmpty()) {
+            photoUrl = fileStorageService.getDefaultImageUrl();
+        }
+        user.setPhoto(photoUrl);
         return user;
     }
 

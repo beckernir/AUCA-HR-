@@ -5,6 +5,8 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,6 +16,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @Builder
+@NoArgsConstructor
 public class UserRegistrationDTO {
 
     @NotBlank(message = "Full name is required")
@@ -52,7 +55,7 @@ public class UserRegistrationDTO {
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
-    private String photo;
+    private MultipartFile photo;
 
     @NotBlank(message = "Working position is required")
     @Size(min = 2, max = 100, message = "Working position must be between 2 and 100 characters")
@@ -172,11 +175,11 @@ public class UserRegistrationDTO {
         this.password = password;
     }
 
-    public String getPhoto() {
+    public MultipartFile getPhoto() {
         return photo;
     }
 
-    public void setPhoto(String photo) {
+    public void setPhoto(MultipartFile photo) {
         this.photo = photo;
     }
 

@@ -9,12 +9,16 @@ import com.auca_hr.AUCA_HR_System.exceptions.DuplicateResourceException;
 import com.auca_hr.AUCA_HR_System.exceptions.InvalidFormatException;
 import com.auca_hr.AUCA_HR_System.exceptions.ResourceNotFoundException;
 import com.auca_hr.AUCA_HR_System.services.UserService;
+import com.auca_hr.AUCA_HR_System.utils.FileStorageService;
+import com.auca_hr.AUCA_HR_System.utils.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -26,17 +30,31 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final FileStorageService fileStorageService;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FileStorageService fileStorageService, JwtUtil jwtUtil) {
         this.userService = userService;
+        this.fileStorageService = fileStorageService;
+        this.jwtUtil = jwtUtil;
     }
+    @GetMapping("/search")
+    public ResponseEntity<List<UserRegistrationDTO>> searchUsers(
+            @RequestParam("q") String query,
+            @RequestHeader("Authorization") String authHeader) {
 
+        String token = authHeader.replace("Bearer ", "");
+        Long currentUserId = jwtUtil.extractUserId(token);
+
+        List<UserRegistrationDTO> users = userService.searchUsers(query, currentUserId);
+        return ResponseEntity.ok(users);
+    }
     /**
      * Create a new user
      */
-    @PostMapping
-    public ResponseEntity<ApiResponse<User>> createUser( @RequestBody UserRegistrationDTO registrationDTO) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<User>> createUser(@ModelAttribute UserRegistrationDTO registrationDTO) {
         try {
             User createdUser = userService.createUser(registrationDTO);
             ApiResponse<User> response = new ApiResponse<>(
@@ -72,6 +90,64 @@ public class UserController {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<ApiResponse<User>> createUser(
+//            @RequestPart("userData") UserRegistrationDTO registrationDTO,
+//            @RequestPart(value = "photo", required = false) MultipartFile photo) {
+//        try {
+//            // Upload photo if provided
+//            String photoUrl = null;
+//            if (photo != null && !photo.isEmpty()) {
+//                photoUrl = fileStorageService.uploadImage(photo);
+//            }
+//
+//            // Set the photo URL in the DTO
+//            registrationDTO.setPhoto(photoUrl);
+//
+//            User createdUser = userService.createUser(registrationDTO);
+//            ApiResponse<User> response = new ApiResponse<>(
+//                    true,
+//                    "User created successfully",
+//                    createdUser,
+//                    HttpStatus.CREATED.value()
+//            );
+//            return new ResponseEntity<>(response, HttpStatus.CREATED);
+//        } catch (FileValidationException e) {
+//            ApiResponse<User> response = new ApiResponse<>(
+//                    false,
+//                    "File validation error: " + e.getMessage(),
+//                    null,
+//                    HttpStatus.BAD_REQUEST.value()
+//            );
+//            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+//        } catch (InvalidFormatException e) {
+//            ApiResponse<User> response = new ApiResponse<>(
+//                    false,
+//                    "Invalid format: " + e.getMessage(),
+//                    null,
+//                    HttpStatus.BAD_REQUEST.value()
+//            );
+//            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+//        } catch (DuplicateResourceException e) {
+//            ApiResponse<User> response = new ApiResponse<>(
+//                    false,
+//                    "Duplicate resource: " + e.getMessage(),
+//                    null,
+//                    HttpStatus.CONFLICT.value()
+//            );
+//            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+//        } catch (Exception e) {
+//            ApiResponse<User> response = new ApiResponse<>(
+//                    false,
+//                    "An error occurred while creating user: " + e.getMessage(),
+//                    null,
+//                    HttpStatus.INTERNAL_SERVER_ERROR.value()
+//            );
+//            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     /**
      * Update an existing user
@@ -205,6 +281,8 @@ public class UserController {
     /**
      * Get all users with pagination
      */
+    // Add this endpoint to your UserController
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<User>>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,

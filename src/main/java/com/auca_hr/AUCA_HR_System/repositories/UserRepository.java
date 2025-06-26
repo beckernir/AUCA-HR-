@@ -33,23 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByRole(UserRole role);
 
-//    Page <User> findByRole(UserRole role, Pageable pageable);
-//
-//    List<User> findByActiveTrue();
-//
-//    Page<User> findByActiveTrue(Pageable pageable);
+    List<User> findByFullNamesContainingIgnoreCase(String username);
 
-//    @Query("SELECT u FROM User u WHERE u.role = :role AND u.active = true")
-//    List<User> findActiveUsersByRole(@Param("role") UserRole role);
-//
-//    @Query("SELECT u FROM User u WHERE " +
-//            "(:fullName IS NULL OR LOWER(u.fullNames) LIKE LOWER(CONCAT('%', :fullName, '%'))) AND " +
-//            "(:email IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
-//            "(:role IS NULL OR u.role = :role) AND " +
-//            "(:active IS NULL OR u.active = :active)")
-//    Page<User> findUsersWithFilters(@Param("fullName") String fullName,
-//                                    @Param("email") String email,
-//                                    @Param("role") UserRole role,
-//                                    @Param("active") Boolean active,
-//                                    Pageable pageable);
+
 }
