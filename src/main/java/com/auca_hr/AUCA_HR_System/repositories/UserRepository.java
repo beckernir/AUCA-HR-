@@ -4,6 +4,8 @@ package com.auca_hr.AUCA_HR_System.repositories;
 import com.auca_hr.AUCA_HR_System.entities.User;
 import com.auca_hr.AUCA_HR_System.enums.UserRole;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,4 +38,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByFullNamesContainingIgnoreCase(String username);
 
 
+    List<User> findAll(Specification<User> spec, Sort sort);
 }

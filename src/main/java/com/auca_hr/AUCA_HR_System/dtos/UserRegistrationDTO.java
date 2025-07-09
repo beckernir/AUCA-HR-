@@ -19,6 +19,8 @@ import java.util.List;
 @NoArgsConstructor
 public class UserRegistrationDTO {
 
+    private Long id;
+
     @NotBlank(message = "Full name is required")
     @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
     private String fullNames;
@@ -72,9 +74,9 @@ public class UserRegistrationDTO {
     private TprLevel tprLevel;
     private String rssbNumber;
 
-    private List<WorkExperienceDTO> WorkExperienceDTO;
+    private List<WorkExperienceDTO> workExperienceDto;
 
-    private List<EducationDTO> education ;
+    private List<EducationDTO> educationDto ;
 
     @NotNull(message = "User role is required")
     private UserRole role;
@@ -247,19 +249,19 @@ public class UserRegistrationDTO {
         this.role = role;
     }
 
-    public List<WorkExperienceDTO> getWorkExperienceDTO() {
-        return WorkExperienceDTO;
+    public List<WorkExperienceDTO> getWorkExperienceDto() {
+        return workExperienceDto;
     }
 
-    public void setWorkExperienceDTO(List<WorkExperienceDTO> workExperienceDTO) {
-        WorkExperienceDTO = workExperienceDTO;
+    public void setWorkExperienceDto(List<WorkExperienceDTO> workExperienceDto) {
+        this.workExperienceDto = workExperienceDto;
     }
 
-    public List<EducationDTO> getEducation() {
-        return education;
+    public List<EducationDTO> getEducationDto() {
+        return educationDto;
     }
 
-    public void setEducation(List<EducationDTO> education) {
-        this.education = education;
+    public void setEducationDto(List<EducationDTO> educationDto) {
+        this.educationDto = educationDto;
     }
 }

@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,15 +35,28 @@ public class LeaveService {
     private final NotificationService notificationService;
 
     // Maximum annual leave days allowed
-    private static final int MAX_ANNUAL_LEAVE_DAYS = 30;
+    private static final int MAX_ANNUAL_LEAVE_DAYS = 18;
 
 
     // Get leave balance for a specific user
-    public int getRemainingLeaveBalance(String userId, int year) {
-        List<LeaveRequest> approvedLeaves = leaveRequestRepository.findByUserEmailAndYearAndStatus(userId, year, LeaveStatus.APPROVED);
+//    public int getRemainingLeaveBalance(String userId, int year) {
+//        List<LeaveRequest> approvedLeaves = leaveRequestRepository.findByUserEmailAndYearAndStatus(userId, year, LeaveStatus.APPROVED);
+//
+//        int usedDays = approvedLeaves.stream()
+//                .mapToInt(leave -> (int) ChronoUnit.DAYS.between(leave.getStartDate(), leave.getEndDate()) + 1)
+//                .sum();
+//
+//        return MAX_ANNUAL_LEAVE_DAYS - usedDays;
+//    }
+    // Get leave balance for a specific user
+    public int getRemainingLeaveBalance(String userEmail, int year) {
+        List<LeaveRequest> approvedLeaves = leaveRequestRepository.findByUserEmailAndYearAndStatus(userEmail, year, LeaveStatus.APPROVED);
 
         int usedDays = approvedLeaves.stream()
-                .mapToInt(leave -> (int) ChronoUnit.DAYS.between(leave.getStartDate(), leave.getEndDate()) + 1)
+                .mapToInt(leave -> {
+                    // Use Period.between for more accurate date calculation
+                    return (int) ChronoUnit.DAYS.between(leave.getStartDate(), leave.getEndDate().plusDays(1));
+                })
                 .sum();
 
         return MAX_ANNUAL_LEAVE_DAYS - usedDays;

@@ -53,9 +53,12 @@ public class ChatService {
 
         User sender = userRepository.findByEmail(senderUsername)
                 .orElseThrow(() -> new RuntimeException("Sender not found: " + senderUsername));
+        System.out.println("selected user"+ sender);
 
         User recipient = userRepository.findById(recipientId)
                 .orElseThrow(() -> new RuntimeException("Recipient not found with ID: " + recipientId));
+
+        System.out.println("selected user"+ recipient);
 
         ChatMessage message = ChatMessage.builder()
                 .sender(sender)

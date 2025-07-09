@@ -26,7 +26,7 @@ public class ChatMessage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipient_id")
-    private User recipient; // null for group chat
+    private User recipient;
 
     @Column(nullable = false, length = 1000)
     private String content;

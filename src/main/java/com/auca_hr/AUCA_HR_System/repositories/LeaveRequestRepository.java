@@ -4,6 +4,8 @@ import com.auca_hr.AUCA_HR_System.entities.LeaveRequest;
 import com.auca_hr.AUCA_HR_System.entities.User;
 import com.auca_hr.AUCA_HR_System.enums.LeaveStatus;
 import com.auca_hr.AUCA_HR_System.enums.LeaveType;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -69,4 +71,6 @@ List<LeaveRequest> findByUserEmailAndYearAndStatus(@Param("userEmail") String us
           "OR lr.description LIKE %:searchTerm% " +
             "ORDER BY lr.createdAt DESC")
     List<LeaveRequest> searchLeaveRequests(@Param("searchTerm") String searchTerm);
+
+    List<LeaveRequest> findAll(Specification<LeaveRequest> spec, Sort sort);
 }

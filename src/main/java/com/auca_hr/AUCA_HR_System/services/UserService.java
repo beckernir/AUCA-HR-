@@ -38,10 +38,10 @@ import java.util.stream.Collectors;
 @Transactional
 public class UserService {
 
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
-    private Validator validator;
-    private EmailService emailService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final Validator validator;
+    private final EmailService emailService;
     private final FileStorageService fileStorageService;
 
     @Autowired
@@ -96,6 +96,7 @@ public class UserService {
     /**
      * Create a new user with comprehensive validation
      */
+    @Transactional
     public User createUser(UserRegistrationDTO registrationDTO) {
         validateUserRegistration(registrationDTO);
         User user = buildUserFromRegistrationDTO(registrationDTO);
@@ -104,8 +105,8 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(password)); // IMPORTANT
 
         // IMPORTANT: Use the helper method, don't set education list directly
-        if (registrationDTO.getEducation() != null) {
-            for (EducationDTO eduDto : registrationDTO.getEducation()) {
+        if (registrationDTO.getEducationDto() != null) {
+            for (EducationDTO eduDto : registrationDTO.getEducationDto()) {
                 Education education = new Education();
                 education.setInstitution(eduDto.getInstitution());
                 education.setDepartment(eduDto.getDepartment());
@@ -117,8 +118,8 @@ public class UserService {
             }
         }
         // IMPORTANT: Use the helper method, don't set education list directly
-        if (registrationDTO.getWorkExperienceDTO() != null) {
-            for (WorkExperienceDTO eduDto : registrationDTO.getWorkExperienceDTO()) {
+        if (registrationDTO.getWorkExperienceDto() != null) {
+            for (WorkExperienceDTO eduDto : registrationDTO.getWorkExperienceDto()) {
                 WorkExperience education = new WorkExperience();
                 education.setCompany(eduDto.getCompany());
                 education.setPosition(eduDto.getPosition());
@@ -132,12 +133,46 @@ public class UserService {
         }
 
 
-
         User savedUser = userRepository.save(user);
+        // Debug: Check if relationships are saved
+        System.out.println("Saved user ID: " + user.getId());
+        System.out.println("Education count: " + user.getEducation().size());
+        System.out.println("Work experience count: " + user.getWorkExperience().size());
         sendWelcomeEmail(savedUser.getEmail(), savedUser.getFullNames(), password);
 
-
         return savedUser;
+    }
+    // Private validation methods
+    private void validateUserRegistration(UserRegistrationDTO dto) {
+        // Bean validation
+        Set<ConstraintViolation<UserRegistrationDTO>> violations = validator.validate(dto);
+        if (!violations.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (ConstraintViolation<UserRegistrationDTO> violation : violations) {
+                sb.append(violation.getMessage()).append("; ");
+            }
+            throw new ValidationException("Registration validation failed: " + sb.toString());
+        }
+
+        // Custom validations
+        validateEmail(dto.getEmail());
+        validatePhoneNumber(dto.getPhoneNumber());
+        validateNationalId(dto.getNationalId());
+        validateDateOfBirth(dto.getDateOfBirth());
+        validateSalary(dto.getSalary());
+        validateAccountNumber(dto.getAccountNumber());
+        validateRssbNumber(dto.getRssbNumber());
+
+        // Check uniqueness
+        if (emailExists(dto.getEmail())) {
+            throw new DuplicateResourceException("Email already exists: " + dto.getEmail());
+        }
+        if (nationalIdExists(dto.getNationalId())) {
+            throw new DuplicateResourceException("National ID already exists: " + dto.getNationalId());
+        }
+        if (phoneNumberExists(dto.getPhoneNumber())) {
+            throw new DuplicateResourceException("Phone number already exists: " + dto.getPhoneNumber());
+        }
     }
 
     /**
@@ -245,41 +280,6 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    // Private validation methods
-    private void validateUserRegistration(UserRegistrationDTO dto) {
-        // Bean validation
-        Set<ConstraintViolation<UserRegistrationDTO>> violations = validator.validate(dto);
-        if (!violations.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            for (ConstraintViolation<UserRegistrationDTO> violation : violations) {
-                sb.append(violation.getMessage()).append("; ");
-            }
-            throw new ValidationException("Registration validation failed: " + sb.toString());
-        }
-
-        // Custom validations
-        validateEmail(dto.getEmail());
-        validatePhoneNumber(dto.getPhoneNumber());
-        validateNationalId(dto.getNationalId());
-        validateDateOfBirth(dto.getDateOfBirth());
-//        validatePassword(dto.getPassword());
-        validateSalary(dto.getSalary());
-        validateAccountNumber(dto.getAccountNumber());
-        validateRssbNumber(dto.getRssbNumber());
-        validatePhoto(dto.getPhoto());
-
-        // Check uniqueness
-        if (emailExists(dto.getEmail())) {
-            throw new DuplicateResourceException("Email already exists: " + dto.getEmail());
-        }
-        if (nationalIdExists(dto.getNationalId())) {
-            throw new DuplicateResourceException("National ID already exists: " + dto.getNationalId());
-        }
-        if (phoneNumberExists(dto.getPhoneNumber())) {
-            throw new DuplicateResourceException("Phone number already exists: " + dto.getPhoneNumber());
-        }
-    }
-
     private void validateUserUpdate(UserUpdateDTO dto, User existingUser) {
         // Bean validation
         Set<ConstraintViolation<UserUpdateDTO>> violations = validator.validate(dto);
@@ -348,19 +348,20 @@ public class UserService {
         }
     }
     /**
-     * Validate photo upload using FileStorageService validation logic
+     * Validate and upload photo, returning the uploaded URL
      * @param photo The multipart file containing the user's photo
+     * @return The uploaded photo URL, or null if no photo provided
      * @throws ValidationException if photo validation fails
      */
-    private void validatePhoto(MultipartFile photo) {
+    private String validateAndUploadPhoto(MultipartFile photo) {
         // Skip validation if photo is not provided (optional upload)
         if (photo == null || photo.isEmpty()) {
-            return; // Photo is optional, so we don't throw an error
+            return null; // Photo is optional
         }
 
         try {
-            // Use FileStorageService to validate the image
-            fileStorageService.uploadImage(photo);
+            // Upload and return the URL
+            return fileStorageService.uploadImage(photo);
         } catch (FileValidationException e) {
             throw new ValidationException("Photo validation failed: " + e.getMessage());
         }
@@ -454,12 +455,6 @@ public class UserService {
         dto.setRole(user.getRole());
         dto.setTotalAllowances(user.getTotalAllowances());
         dto.setTprLevel(user.getTprLevel());
-//
-//        String photoUrl = user.getPhoto();
-//        if (photoUrl == null || photoUrl.trim().isEmpty()) {
-//            photoUrl = fileStorageService.getDefaultImageUrl();
-//        }
-//        dto.setPhoto(photoUrl);
 
         return dto;
     }
@@ -488,7 +483,8 @@ public class UserService {
         user.setTotalAllowances(dto.getTotalAllowances());
         user.setTprLevel(dto.getTprLevel());
 
-        String photoUrl = user.getPhoto();
+        // Handle photo upload
+        String photoUrl = validateAndUploadPhoto(dto.getPhoto());
         if (photoUrl == null || photoUrl.trim().isEmpty()) {
             photoUrl = fileStorageService.getDefaultImageUrl();
         }

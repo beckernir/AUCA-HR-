@@ -1,6 +1,7 @@
 package com.auca_hr.AUCA_HR_System.entities;
 
 import com.auca_hr.AUCA_HR_System.enums.NotificationType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,11 +21,13 @@ public class Notification {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipient_id", nullable = false)
+    @JoinColumn(name = "recipient_id")
+    @JsonBackReference("user-notifications")
     private User recipient;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
+    @JsonBackReference("user-notifications")
     private User sender;
 
     @ManyToOne(fetch = FetchType.LAZY)

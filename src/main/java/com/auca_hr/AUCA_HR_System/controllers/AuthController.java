@@ -65,16 +65,6 @@ public class AuthController {
 
             User user = (User) authentication.getPrincipal();
 
-//            if (user.getAccountStatus() != Status.ACTIVE) {
-//                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                        .body(StandardResponse.<AuthResponse>builder()
-//                                .message("Your account is not active. Please contact administration for activation.")
-//                                .statusCode(HttpStatus.FORBIDDEN.value())
-//                                .data(new AuthResponse(null, user.getEmail(), user.getRole().name(),
-//                                        user.getFirstName(), user.getLastName(), "Your account is not active."))
-//                                .build());
-//            }
-
             String token = jwtTokenService.generateToken(user);
 
             // ✅ Store JWT in session

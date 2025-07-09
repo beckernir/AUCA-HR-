@@ -11,6 +11,7 @@ import com.auca_hr.AUCA_HR_System.exceptions.ResourceNotFoundException;
 import com.auca_hr.AUCA_HR_System.services.UserService;
 import com.auca_hr.AUCA_HR_System.utils.FileStorageService;
 import com.auca_hr.AUCA_HR_System.utils.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -90,65 +92,6 @@ public class UserController {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<ApiResponse<User>> createUser(
-//            @RequestPart("userData") UserRegistrationDTO registrationDTO,
-//            @RequestPart(value = "photo", required = false) MultipartFile photo) {
-//        try {
-//            // Upload photo if provided
-//            String photoUrl = null;
-//            if (photo != null && !photo.isEmpty()) {
-//                photoUrl = fileStorageService.uploadImage(photo);
-//            }
-//
-//            // Set the photo URL in the DTO
-//            registrationDTO.setPhoto(photoUrl);
-//
-//            User createdUser = userService.createUser(registrationDTO);
-//            ApiResponse<User> response = new ApiResponse<>(
-//                    true,
-//                    "User created successfully",
-//                    createdUser,
-//                    HttpStatus.CREATED.value()
-//            );
-//            return new ResponseEntity<>(response, HttpStatus.CREATED);
-//        } catch (FileValidationException e) {
-//            ApiResponse<User> response = new ApiResponse<>(
-//                    false,
-//                    "File validation error: " + e.getMessage(),
-//                    null,
-//                    HttpStatus.BAD_REQUEST.value()
-//            );
-//            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-//        } catch (InvalidFormatException e) {
-//            ApiResponse<User> response = new ApiResponse<>(
-//                    false,
-//                    "Invalid format: " + e.getMessage(),
-//                    null,
-//                    HttpStatus.BAD_REQUEST.value()
-//            );
-//            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-//        } catch (DuplicateResourceException e) {
-//            ApiResponse<User> response = new ApiResponse<>(
-//                    false,
-//                    "Duplicate resource: " + e.getMessage(),
-//                    null,
-//                    HttpStatus.CONFLICT.value()
-//            );
-//            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-//        } catch (Exception e) {
-//            ApiResponse<User> response = new ApiResponse<>(
-//                    false,
-//                    "An error occurred while creating user: " + e.getMessage(),
-//                    null,
-//                    HttpStatus.INTERNAL_SERVER_ERROR.value()
-//            );
-//            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-
     /**
      * Update an existing user
      */
@@ -244,6 +187,57 @@ public class UserController {
             return ResponseEntity.badRequest().build();
         }
     }
+//    /**
+//     * Get current user profile - FIXED VERSION
+//     */
+//    @GetMapping("/profile")
+//    public ResponseEntity<ApiResponse<User>> getCurrentUserProfile(HttpServletRequest request) {
+//        try {
+//            // Get JWT token from Authorization header
+//            String authHeader = request.getHeader("Authorization");
+//            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//                ApiResponse<User> response = new ApiResponse<>(
+//                        false,
+//                        "No valid token provided",
+//                        null,
+//                        HttpStatus.UNAUTHORIZED.value()
+//                );
+//                return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+//            }
+//
+//            String token = authHeader.substring(7); // Remove "Bearer " prefix
+//            String email = jwtUtil.extractUsername(token);
+//
+//            if (email == null || jwtUtil.isTokenExpired(token)) {
+//                ApiResponse<User> response = new ApiResponse<>(
+//                        false,
+//                        "Invalid or expired token",
+//                        null,
+//                        HttpStatus.UNAUTHORIZED.value()
+//                );
+//                return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+//            }
+//
+//            User user = userService.getUserByEmail(email);
+//
+//            ApiResponse<User> response = new ApiResponse<>(
+//                    true,
+//                    "User profile retrieved successfully",
+//                    user,
+//                    HttpStatus.OK.value()
+//            );
+//            return new ResponseEntity<>(response, HttpStatus.OK);
+//
+//        } catch (Exception e) {
+//            ApiResponse<User> response = new ApiResponse<>(
+//                    false,
+//                    "An error occurred while retrieving user profile: " + e.getMessage(),
+//                    null,
+//                    HttpStatus.INTERNAL_SERVER_ERROR.value()
+//            );
+//            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     /**
      * Get user by email

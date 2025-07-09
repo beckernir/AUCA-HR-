@@ -2,6 +2,7 @@ package com.auca_hr.AUCA_HR_System.entities;
 
 import com.auca_hr.AUCA_HR_System.enums.LeaveStatus;
 import com.auca_hr.AUCA_HR_System.enums.LeaveType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "leave_requests")
@@ -24,8 +26,10 @@ public class LeaveRequest {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lecturer_id", nullable = false)
+    @JoinColumn(name = "lecturer_id")
+    @JsonBackReference("user-leaverequests")
     private User lecturer;
+
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Leave type is required")
@@ -59,6 +63,9 @@ public class LeaveRequest {
 
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
+
+    @OneToMany(mappedBy = "leaveRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications;
 
     @PrePersist
     protected void onCreate() {

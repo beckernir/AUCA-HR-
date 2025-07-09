@@ -7,6 +7,7 @@ import jakarta.validation.constraints.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -91,7 +93,6 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Lob
     private String photo;
 
     @NotBlank(message = "Working position is required")
@@ -130,15 +131,6 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Boolean active = true;
 
-    // Relationships for work experience and education
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonManagedReference // This manages the forward part of reference
-    private List<WorkExperience> workExperience = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonManagedReference // This manages the forward part of reference
-    private List<Education> education = new ArrayList<>();
-
     // Additional fields for UserDetails implementation
     @Column(name = "account_non_expired")
     private Boolean accountNonExpired = true;
@@ -156,6 +148,25 @@ public class User implements UserDetails {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    // In your User entity, update these relationships:
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonIgnore
+    private List<WorkExperience> workExperience = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonIgnore
+    private List<Education> education = new ArrayList<>();
+
+    @OneToMany(mappedBy = "lecturer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<LeaveRequest> leaveRequests;
+
+    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Notification> notifications;
+
 
     // Calculated field for age
     @Transient
@@ -436,22 +447,6 @@ public class User implements UserDetails {
         this.updatedAt = updatedAt;
     }
 
-    public List<WorkExperience> getWorkExperience() {
-        return workExperience;
-    }
-
-    public void setWorkExperience(List<WorkExperience> workExperience) {
-        this.workExperience = workExperience;
-    }
-
-    public List<Education> getEducation() {
-        return education;
-    }
-
-    public void setEducation(List<Education> education) {
-        this.education = education;
-    }
-
     // Add this helper method to properly set up the bidirectional relationship
     public void addEducation(Education educationItem) {
         education.add(educationItem);
@@ -474,27 +469,27 @@ public class User implements UserDetails {
         workExp.setUser(null);
     }
 
-    //    public List<WorkExperience> getWorkExperience() {
-//        return workExperience;
-//    }
-//
-//    public void setWorkExperience(List<WorkExperience> workExperience) {
-//        this.workExperience = workExperience;
-//        // Set the user reference for each work experience
-//        if (workExperience != null) {
-//            workExperience.forEach(we -> we.setUser(this));
-//        }
-//    }
-//
-//    public List<Education> getEducation() {
-//        return education;
-//    }
-//
-//    public void setEducation(List<Education> education) {
-//        this.education = education;
-//        // Set the user reference for each education
-//        if (education != null) {
-//            education.forEach(e -> e.setUser(this));
-//        }
-//    }
+        public List<WorkExperience> getWorkExperience() {
+        return workExperience;
+    }
+
+    public void setWorkExperience(List<WorkExperience> workExperience) {
+        this.workExperience = workExperience;
+        // Set the user reference for each work experience
+        if (workExperience != null) {
+            workExperience.forEach(we -> we.setUser(this));
+        }
+    }
+
+    public List<Education> getEducation() {
+        return education;
+    }
+
+    public void setEducation(List<Education> education) {
+        this.education = education;
+        // Set the user reference for each education
+        if (education != null) {
+            education.forEach(e -> e.setUser(this));
+        }
+    }
 }
