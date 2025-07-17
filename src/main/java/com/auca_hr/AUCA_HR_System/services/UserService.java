@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
 import java.util.Set;
@@ -125,7 +126,9 @@ public class UserService {
                 education.setPosition(eduDto.getPosition());
                 education.setExperience(eduDto.getExperience());
                 education.setYear(eduDto.getYear());
-                education.setLogo(education.getLogo());
+                // Manually set timestamps
+                education.setCreatedAt(LocalDateTime.now());
+                education.setUpdatedAt(LocalDateTime.now());
 
                 // THIS IS THE KEY - use addEducation(), not user.getEducation().add()
                 user.addWorkExperience(education);

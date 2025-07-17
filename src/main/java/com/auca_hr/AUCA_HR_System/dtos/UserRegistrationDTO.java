@@ -1,11 +1,13 @@
 package com.auca_hr.AUCA_HR_System.dtos;
 
 import com.auca_hr.AUCA_HR_System.enums.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -30,6 +32,7 @@ public class UserRegistrationDTO {
 
     @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be in the past")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
 
     @NotNull(message = "Gender is required")
