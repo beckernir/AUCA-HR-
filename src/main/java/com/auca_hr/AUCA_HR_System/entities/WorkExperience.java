@@ -40,24 +40,19 @@ public class WorkExperience {
     @Column(nullable = false, length = 20)
     private String year;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String experience;
 
-    @Lob
-    private String logo;
+//    @Lob
+//    private String logo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @JsonIgnore
+    @JsonBackReference
     private User user;
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @LastModifiedDate
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     // Getters and Setters
@@ -99,14 +94,6 @@ public class WorkExperience {
 
     public void setExperience(String experience) {
         this.experience = experience;
-    }
-
-    public String getLogo() {
-        return logo;
-    }
-
-    public void setLogo(String logo) {
-        this.logo = logo;
     }
 
     public User getUser() {
